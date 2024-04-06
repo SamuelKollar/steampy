@@ -191,6 +191,32 @@ class SteamClient:
         response = self._filter_non_active_offers(response)
 
         return merge_items_with_descriptions_from_offers(response) if merge else response
+    
+    
+    def get_trade_offers(self, merge: bool = True,sent:int=1,received:int=1,use_webtoken=False) -> dict:
+        params = {'key'if not use_webtoken else 'access_token': self._api_key if not use_webtoken else self._access_token,
+                  'get_sent_offers': sent,
+                  'get_received_offers': received,
+                  'get_descriptions': 1,
+                  'language': 'english',
+                  'active_only': 1,
+                  'historical_only': 0,
+                  'time_historical_cutoff': ''}
+
+
+        try:
+            response = self.api_call('GET', 'IEconService', 'GetTradeOffers', 'v1', params)
+
+            response = response.json()
+
+        except json.decoder.JSONDecodeError:
+            time.sleep(2)
+            return self.get_trade_offers(merge,sent,received)
+        response = self._filter_non_active_offers(response)
+
+        if merge:
+            response = merge_items_with_descriptions_from_offers(response)
+        return response
 
     @staticmethod
     def _filter_non_active_offers(offers_response):
@@ -206,8 +232,14 @@ class SteamClient:
 
         return offers_response
 
-    def get_trade_offer(self, trade_offer_id: str, merge: bool = True) -> dict:
-        params = {'key': self._api_key, 'tradeofferid': trade_offer_id, 'language': 'english'}
+    def get_trade_offer(self, trade_offer_id: str, merge: bool = True, use_webtoken=False) -> dict:
+
+        params = {
+            'key' if not use_webtoken else 'access_token': self._api_key if not use_webtoken else self._access_token,
+            'tradeofferid': trade_offer_id,
+            'language': 'english'}
+
+        #params = {'key': self._api_key, 'tradeofferid': trade_offer_id, 'language': 'english'}
         response = self.api_call('GET', 'IEconService', 'GetTradeOffer', 'v1', params).json()
 
         if merge and 'descriptions' in response['response']:
