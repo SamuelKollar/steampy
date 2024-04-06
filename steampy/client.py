@@ -111,6 +111,19 @@ class SteamClient:
         LoginExecutor(self.username, self._password, self.steam_guard['shared_secret'], self._session).login()
         self.was_login_executed = True
         self.market._set_login_executed(self.steam_guard, self._get_session_id())
+        
+        from urllib.parse import unquote
+
+        steam_login_secure_cookies = [cookie for cookie in self._session.cookies if cookie.name == 'steamLoginSecure']
+        cookie_value = steam_login_secure_cookies[0].value
+        decoded_cookie_value = unquote(cookie_value)
+        access_token_parts = decoded_cookie_value.split('||')
+        if len(access_token_parts) < 2:
+            print(decoded_cookie_value)
+            raise ValueError('Access token not found in steamLoginSecure cookie')
+
+        access_token = access_token_parts[1]
+        self._access_token = access_token
 
     @login_required
     def logout(self) -> None:
@@ -179,13 +192,13 @@ class SteamClient:
 
     def get_trade_offers(self, merge: bool = True,sent:int=1,received:int=1,use_webtoken=False) -> dict:
         params = {'key'if not use_webtoken else 'access_token': self._api_key if not use_webtoken else self._access_token,
-                'get_sent_offers': sent,
-                'get_received_offers': received,
-                'get_descriptions': 1,
-                'language': 'english',
-                'active_only': 1,
-                'historical_only': 0,
-                'time_historical_cutoff': ''}
+                  'get_sent_offers': sent,
+                  'get_received_offers': received,
+                  'get_descriptions': 1,
+                  'language': 'english',
+                  'active_only': 1,
+                  'historical_only': 0,
+                  'time_historical_cutoff': ''}
 
 
         try:
