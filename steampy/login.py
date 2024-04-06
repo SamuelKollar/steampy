@@ -18,6 +18,19 @@ class LoginExecutor:
         self.shared_secret = shared_secret
         self.session = session
         self.refresh_token = ''
+        self._access_token = ''
+        from urllib.parse import unquote
+
+        steam_login_secure_cookies = [cookie for cookie in self._session.cookies if cookie.name == 'steamLoginSecure']
+        cookie_value = steam_login_secure_cookies[0].value
+        decoded_cookie_value = unquote(cookie_value)
+        access_token_parts = decoded_cookie_value.split('||')
+        if len(access_token_parts) < 2:
+            print(decoded_cookie_value)
+            raise ValueError('Access token not found in steamLoginSecure cookie')
+
+        access_token = access_token_parts[1]
+        self._access_token = access_token
 
     def _api_call(self, method: str, service: str, endpoint: str, version: str = 'v1', params: dict = None) -> Response:
         url = '/'.join((SteamUrl.API_URL, service, endpoint, version))
