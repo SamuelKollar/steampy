@@ -242,6 +242,8 @@ class SteamClient:
 
         #params = {'key': self._api_key, 'tradeofferid': trade_offer_id, 'language': 'english'}
         response = self.api_call('GET', 'IEconService', 'GetTradeOffer', 'v1', params).json()
+        
+        print(response)
 
         if merge and 'descriptions' in response['response']:
             descriptions = {get_description_key(offer): offer for offer in response['response']['descriptions']}
