@@ -38,6 +38,7 @@ class SteamClient:
         steam_guard: str = None,
         login_cookies: dict = None,
         proxies: dict = None,
+        _access_token: str = None,
     ) -> None:
         self._api_key = api_key
         self._session = requests.Session()
@@ -54,6 +55,7 @@ class SteamClient:
         self.was_login_executed = False
         self.username = username
         self._password = password
+        self._access_token = _access_token
         self.market = SteamMarket(self._session)
 
         if login_cookies:
